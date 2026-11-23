@@ -29,6 +29,9 @@ import { Card, CardGrid } from '@astrojs/starlight/components'
   <Card title="03. 构建期 KaTeX 0.19 公式排版" icon="pencil">
     通过 `remark-math@6.0.0` + `rehype-katex@7.0.1` 在构建期将公式渲染为高性能 HTML + CSS Webfont 结构，无客户端 JS 解析开销。
   </Card>
+  <Card title="04. 深层隔离目录与 autogenerate 侧栏" icon="open-book">
+    强制隔离在 `src/content/docs/` 下杜绝工程文件污染；原生支持 `autogenerate` 与 `order` 干净 URL 排序，但存在层级深与嵌套目录英文分组名暴露的取舍。
+  </Card>
 </CardGrid>
 
 ## 子模块版本档案

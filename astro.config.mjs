@@ -53,7 +53,11 @@ export default defineConfig({
             { label: '00. 版本与基准概览', slug: '' },
             { label: '01. 专属标注与元数据', slug: '01-annotations' },
             { label: '02. 流程图与时序图', slug: '02-diagrams' },
-            { label: '03. 数学公式排版', slug: '03-math' }
+            { label: '03. 数学公式排版', slug: '03-math' },
+            {
+              label: '04. 目录结构与路由取舍',
+              items: [{ autogenerate: { directory: '04-directory' } }]
+            }
           ]
         }
       ]
