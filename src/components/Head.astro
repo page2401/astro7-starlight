@@ -1,0 +1,72 @@
+---
+import Default from '@astrojs/starlight/components/Head.astro'
+---
+
+<Default><slot /></Default>
+
+<script>
+  import mermaid from 'mermaid'
+
+  function decodeBase64Utf8(b64: string): string {
+    const binString = atob(b64)
+    const bytes = Uint8Array.from(binString, (ch) => ch.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
+  }
+
+  async function renderAllMermaid() {
+    // Fallback if Expressive Code processed mermaid blocks first
+    document.querySelectorAll('figure pre[data-language="mermaid"]').forEach((pre) => {
+      const fig = pre.closest('figure')
+      if (!fig) return
+      const lines = Array.from(pre.querySelectorAll('.ec-line .code')).map((el) => el.textContent ?? '')
+      const raw = lines.length > 0 ? lines.join('\n') : (pre.textContent ?? '')
+      const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(raw)))
+      const wrapper = document.createElement('div')
+      wrapper.className = 'sl-mermaid-container not-content'
+      wrapper.setAttribute('data-mermaid-b64', encoded)
+      fig.replaceWith(wrapper)
+    })
+
+    const containers = document.querySelectorAll<HTMLElement>('.sl-mermaid-container[data-mermaid-b64]')
+    if (containers.length === 0) return
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? 'dark' : 'default',
+      securityLevel: 'loose'
+    })
+
+    let idx = 0
+    for (const container of containers) {
+      const b64 = container.getAttribute('data-mermaid-b64')
+      if (!b64) continue
+      const source = decodeBase64Utf8(b64)
+      const id = `sl-mermaid-${Date.now()}-${idx++}`
+      try {
+        const { svg } = await mermaid.render(id, source)
+        container.innerHTML = svg
+      } catch (err) {
+        console.error('Mermaid render error:', err)
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => void renderAllMermaid())
+  } else {
+    void renderAllMermaid()
+  }
+
+  document.addEventListener('astro:page-load', () => void renderAllMermaid())
+
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.type === 'attributes' && m.attributeName === 'data-theme') {
+        void renderAllMermaid()
+        break
+      }
+    }
+  })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+</script>

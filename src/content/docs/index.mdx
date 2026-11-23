@@ -1,0 +1,45 @@
+---
+title: "Astro 7 + Starlight 0.43 基准实测"
+description: "锁定版本 astro@7.4.13 + @astrojs/starlight@0.43.1 · KaTeX + Mermaid 12"
+template: splash
+hero:
+  title: "Astro 7 · Starlight"
+  tagline: "锁定版本 astro@7.4.13 + @astrojs/starlight@0.43.1 · Content Layer + KaTeX + Mermaid 12"
+  actions:
+    - text: "01. 专属标注与元数据 →"
+      link: /astro7-starlight/01-annotations
+      icon: right-arrow
+    - text: "02. 流程图 Mermaid"
+      link: /astro7-starlight/02-diagrams
+      variant: minimal
+    - text: "03. 数学公式 Math"
+      link: /astro7-starlight/03-math
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+<CardGrid>
+  <Card title="01. 强类型 Frontmatter 与 remark 指令标注" icon="document">
+    基于 Astro 7 Content Layer Zod Schema 强校验元数据；采用 `:::note`、`:::tip[标题]`、`:::caution`、`:::danger` 指令语法，标题使用方括号传参。
+  </Card>
+  <Card title="02. 前置 AST 转换接入 Mermaid 12" icon="puzzle">
+    默认代码块由 `astro-expressive-code` 接管；通过自定义 `remark-mermaid` 插件前置转换并配合 `Head.astro` 打包最新 `mermaid@12.3.0` 客户端重绘。
+  </Card>
+  <Card title="03. 构建期 KaTeX 0.19 公式排版" icon="pencil">
+    通过 `remark-math@6.0.0` + `rehype-katex@7.0.1` 在构建期将公式渲染为高性能 HTML + CSS Webfont 结构，无客户端 JS 解析开销。
+  </Card>
+</CardGrid>
+
+## 子模块版本档案
+
+本站点由独立仓库 [`page2401/astro7-starlight`](https://github.com/page2401/astro7-starlight) 构建，`main` 分支仅保存纯源代码与适配后的 `*.md` 基准文档，GitHub Actions 在每次推送后自动编译并发布至孤儿分支 `page`。
+
+| 依赖模块 | 精确锁定版本 | 在本子站中的职责 |
+| :--- | :--- | :--- |
+| `astro` | `7.4.13` | 核心静态站点构建引擎（Node 22 + Content Layer API + Sätteri） |
+| `@astrojs/starlight` | `0.43.1` | 官方文档主题集成（内置 `astro-expressive-code` 与 Pagefind 搜索） |
+| `@astrojs/markdown-remark` | `7.3.10` | Astro 7 默认改用 Sätteri 后，运行 unified/remark 插件须显式安装此包 |
+| `remark-math` / `rehype-katex` | `6.0.0` / `7.0.1` | Markdown 数学语法解析与 KaTeX HTML 结构生成 |
+| `katex` | `0.19.1` | 数学排版样式表与 Webfont 字体资源 |
+| `mermaid` | `12.3.0` | 最新第 12 代客户端流程图、时序图与状态机渲染引擎 |

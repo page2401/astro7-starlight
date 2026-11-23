@@ -1,0 +1,21 @@
+.sl-mermaid-container {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 0.5rem;
+  background-color: var(--sl-color-bg-nav);
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.sl-mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
