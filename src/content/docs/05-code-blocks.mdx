@@ -1,0 +1,102 @@
+---
+title: "05. 高阶代码块与语法高亮"
+description: "测试 Astro 7 + Starlight 0.43.1 内置 Expressive Code 的文件名标题栏、行区间高亮、保留 TS 词法着色的增删 Diff 与 <Tabs> 多语言命令组。"
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+sidebar:
+  badge:
+    text: "EC 内置"
+    variant: tip
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+技术文档中超过 40% 的篇幅由代码块构成，但标准 CommonMark / GitHub Flavored Markdown 仅定义了围栏语言标识（```` ```ts ````），并未定义文件名标题栏、指定行高亮、带词法着色的行级 Diff 以及多语言 Tab 切换组。本页由原始 GFM 母版派生适配至 **Astro 7 (`7.4.13`) + Starlight (`0.43.1`)**，全面实测其开箱内置的 **Expressive Code (`astro-expressive-code`)** 引擎表现。
+
+## 1. 代码块文件名标题栏与编辑器外框
+
+Starlight 内置的 Expressive Code 会根据语言自动区分“代码编辑器窗口”与“终端窗口”（如 `bash` / `sh` 自动渲染三圆点终端顶栏），只需在围栏信息串中声明 `title="scripts/resolve-route.ts"` 即可生成带标签页外观的文件名标题栏与一键复制按钮：
+
+```ts title="scripts/resolve-route.ts"
+export interface RouteContext {
+  basePath: string
+  slug: string
+  cleanUrls: boolean
+}
+
+export function formatDocRoute(ctx: RouteContext): string {
+  const prefix = ctx.basePath.endsWith('/') ? ctx.basePath : `${ctx.basePath}/`
+  const normalized = ctx.slug.replace(/^\/+|\/+$/g, '')
+  if (!normalized || normalized === 'index') return prefix
+  return ctx.cleanUrls ? `${prefix}${normalized}/` : `${prefix}${normalized}.html`
+}
+```
+
+## 2. 关键行聚焦与区间高亮（Line Highlighting）
+
+当需要在配置文件中引导读者聚焦第 `3` 行与第 `7–9` 行时，Expressive Code 原生支持 `{3,7-9}` 行号区间标记（无需侵入代码内容插入注释）：
+
+```json title="benchmark.config.json" {3,7-9}
+{
+  "id": "ssg-benchmark",
+  "routeStyle": "clean",
+  "strictZeroCdn": true,
+  "markdown": {
+    "mathEngine": "katex",
+    "diagramEngine": "mermaid",
+    "lineHighlight": true,
+    "codeTransformers": ["diff", "focus"]
+  }
+}
+```
+
+## 3. 保留词法着色的代码增删对比（Diff + Syntax Highlighting）
+
+标准 GFM 使用 `diff` 语言块时会丢失底层 TypeScript 关键字词法高亮。Expressive Code 原生提供 `del={2-3}` 与 `ins={4-6}` 行级增删属性（亦支持 ```` ```diff lang="ts" ```` 双语法模式），在渲染红绿增删标记的同时**完整保留 TypeScript 词法高亮**：
+
+```ts title="scripts/mount-subsite.ts" del={2-3} ins={4-6}
+export function mountSubsite(baseDir: string, subPath: string): string | null {
+  const cleanRel = decodeURIComponent(subPath).replace(/\.\./g, '')
+  return `${baseDir}/${cleanRel}`
+  const resolvedBase = path.resolve(baseDir)
+  const target = path.resolve(resolvedBase, decodeURIComponent(subPath).replace(/^\/+/, ''))
+  return target.startsWith(`${resolvedBase}${path.sep}`) ? target : null
+}
+```
+
+## 4. 多语言运行时命令组（`<Tabs>` + `<TabItem>`）
+
+由于本章节需要调用交互式横向标签页组件，文件扩展名由 `.md` 升级为 `.mdx`，并从 `@astrojs/starlight/components` 按需引入 `<Tabs syncKey="runtime">` 与 `<TabItem>`（支持跨页面状态同步与无障碍键盘方向键切换）：
+
+<Tabs syncKey="runtime">
+  <TabItem label="Node.js (package.json)">
+    ```bash
+    npm ci && npm run build
+    ```
+  </TabItem>
+  <TabItem label="Deno 2 (deno.json)">
+    ```bash
+    deno task build
+    ```
+  </TabItem>
+  <TabItem label="Python (requirements.txt)">
+    ```bash
+    pip install -r requirements.txt && sphinx-build -b dirhtml . _build/dirhtml
+    ```
+  </TabItem>
+  <TabItem label="Ruby (Gemfile)">
+    ```bash
+    bundle install && bundle exec jekyll build
+    ```
+  </TabItem>
+</Tabs>
+
+## 5. 四大底层高亮引擎能力对照小结
+
+| 高亮引擎代表 | 典型采用框架 | 构建期零运行时 JS | 原生行号 / 行高亮 | 保留词法着色的 Diff |
+| :--- | :--- | :--- | :--- | :--- |
+| **Shiki / Expressive Code** | VitePress、Starlight、Fumadocs、Nextra、Rspress、Nuxt、Quartz | ✅ 纯静态内联样式 | ✅ `{1,3-5}` / `[!code highlight]` | ✅ `del={}` / `// [!code ++]` |
+| **Prism.js** | Docusaurus、VuePress、Eleventy (plugin)、Gatsby | ✅ 静态 Token 类名 | ✅ `{1,3-5}` / 魔法注释 | ⚠️ 需配 diff-highlight 插件 |
+| **Pygments / Rouge** | MkDocs Material、Sphinx、Pelican、Jekyll | ✅ Python/Ruby 编译直出 | ✅ `hl_lines` / `emphasize-lines` | ⚠️ 仅标准 `diff` 块红绿 |
+| **Chroma / Giallo / hljs** | Hugo (Go Chroma)、Zola (Rust Giallo)、mdBook (hljs) | ✅ (mdBook 为客户端 hljs) | ✅ Hugo/Zola 原生 `hl_lines` | ⚠️ 仅标准 `diff` 块红绿 |

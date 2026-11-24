@@ -57,7 +57,8 @@ export default defineConfig({
             {
               label: '04. 目录结构与路由取舍',
               items: [{ autogenerate: { directory: '04-directory' } }]
-            }
+            },
+            { label: '05. 高阶代码块与语法高亮', slug: '05-code-blocks' }
           ]
         }
       ]
